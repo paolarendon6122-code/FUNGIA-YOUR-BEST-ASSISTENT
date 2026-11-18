@@ -1,0 +1,869 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FungIA - Tu Experto en el Reino Fungi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter y Fraunces para un toque orgánico y editorial -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Marked.js para formatear las respuestas Markdown de Gemini -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Fraunces', 'serif'],
+                    },
+                    colors: {
+                        forest: {
+                            950: '#0F2218',
+                            900: '#1B3B2B',
+                            800: '#264E3A',
+                            700: '#35684E',
+                            100: '#E6EFEA',
+                            50:  '#F3F7F5',
+                        },
+                        cream: {
+                            50:  '#FCFBF8',
+                            100: '#F7F4EB',
+                            200: '#EDE7D5',
+                            300: '#DFD5BC',
+                        },
+                        terracotta: {
+                            500: '#C86D51',
+                            600: '#B0583D',
+                            100: '#F9EBE6',
+                        },
+                        gold: {
+                            400: '#E5B54F',
+                            500: '#D4A338',
+                            100: '#FBF4E4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados para scrollbar y tipografía del chat */
+        body {
+            background-color: #F7F4EB;
+            color: #1B3B2B;
+        }
+
+        /* Scrollbar sutil y orgánica */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D5CCB6;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B8AD94;
+        }
+
+        /* Estilos para el contenido renderizado en Markdown dentro de las burbujas */
+        .markdown-body p {
+            margin-bottom: 0.65rem;
+            line-height: 1.6;
+        }
+        .markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+        .markdown-body strong {
+            color: #1B3B2B;
+            font-weight: 700;
+        }
+        .markdown-body ul {
+            list-style-type: disc;
+            padding-left: 1.35rem;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-body ol {
+            list-style-type: decimal;
+            padding-left: 1.35rem;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-body li {
+            margin-bottom: 0.35rem;
+            line-height: 1.5;
+        }
+        .markdown-body h3, .markdown-body h4 {
+            font-family: 'Fraunces', serif;
+            font-weight: 700;
+            color: #1B3B2B;
+            margin-top: 0.85rem;
+            margin-bottom: 0.4rem;
+        }
+        .markdown-body blockquote {
+            border-left: 3px solid #C86D51;
+            background-color: #F9EBE6;
+            padding: 0.6rem 0.85rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 0.75rem 0;
+            font-size: 0.9rem;
+            color: #7A3622;
+        }
+
+        /* Animación suave de esporas flotando */
+        @keyframes pulseSpore {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.35); opacity: 1; }
+        }
+        .spore-dot:nth-child(1) { animation: pulseSpore 1.4s infinite ease-in-out 0s; }
+        .spore-dot:nth-child(2) { animation: pulseSpore 1.4s infinite ease-in-out 0.2s; }
+        .spore-dot:nth-child(3) { animation: pulseSpore 1.4s infinite ease-in-out 0.4s; }
+
+        /* Ocultar barra de desplazamiento en chips horizontales pero permitir scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden antialiased selection:bg-terracotta-500 selection:text-white">
+
+    <!-- ENCABEZADO PRINCIPAL -->
+    <header class="bg-forest-900 text-cream-50 px-4 py-3 sm:px-6 shadow-md z-20 flex items-center justify-between shrink-0 border-b border-forest-800">
+        <div class="flex items-center gap-3">
+            <!-- Logotipo SVG de hongo estilizado -->
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-forest-800 border border-gold-400/30 flex items-center justify-center shadow-inner shrink-0">
+                <svg class="w-7 h-7 text-gold-400" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Sombrero del hongo -->
+                    <path d="M18 5C9.71573 5 3 11.268 3 19C3 20.6569 4.34315 22 6 22H30C31.6569 22 33 20.6569 33 19C33 11.268 26.2843 5 18 5Z" fill="#C86D51"/>
+                    <!-- Manchas/Esporas en el sombrero -->
+                    <circle cx="12" cy="13" r="2.2" fill="#FCFBF8" fill-opacity="0.9"/>
+                    <circle cx="23" cy="11.5" r="1.8" fill="#FCFBF8" fill-opacity="0.9"/>
+                    <circle cx="18.5" cy="16.5" r="2.5" fill="#FCFBF8" fill-opacity="0.9"/>
+                    <circle cx="8" cy="17.5" r="1.3" fill="#FCFBF8" fill-opacity="0.8"/>
+                    <circle cx="27.5" cy="16.5" r="1.5" fill="#FCFBF8" fill-opacity="0.8"/>
+                    <!-- Pie / Estípite del hongo -->
+                    <path d="M14 22H22L23.5 29.5C23.7761 30.8807 22.7202 32 21.3122 32H14.6878C13.2798 32 12.2239 30.8807 12.5 29.5L14 22Z" fill="#F7F4EB"/>
+                    <!-- Branquias / Láminas sutiles -->
+                    <path d="M7 22H29" stroke="#E5B54F" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-cream-50">FungIA</h1>
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-gold-500/20 text-gold-400 border border-gold-400/30 px-2 py-0.5 rounded-full">Micología IA</span>
+                </div>
+                <p class="text-xs sm:text-sm text-forest-100/80">Tu experto en el Reino Fungi</p>
+            </div>
+        </div>
+
+        <!-- Botones de acción en header -->
+        <div class="flex items-center gap-2">
+            <!-- Botón limpiar conversación -->
+            <button id="clearChatBtn" title="Reiniciar conversación" class="p-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 text-cream-100 transition-colors flex items-center gap-1.5 text-xs font-medium border border-forest-700">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span class="hidden md:inline">Nuevo chat</span>
+            </button>
+
+            <!-- Botón toggle Guía Rápida (visible en móvil/tablet y opcional en desktop) -->
+            <button id="toggleGuideBtn" class="lg:hidden p-2.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white transition-colors flex items-center gap-1.5 text-xs font-semibold shadow-sm">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span>Guía Fungi</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL (Chat + Guía Lateral) -->
+    <main class="flex-1 flex overflow-hidden relative max-w-7xl w-full mx-auto">
+
+        <!-- SECCIÓN DE CHAT INTERACTIVO -->
+        <section id="chatDropZone" class="flex-1 flex flex-col h-full bg-cream-50/70 lg:border-x border-cream-300/70 overflow-hidden relative">
+
+            <!-- Overlay de Arrastrar y Soltar (Drag & Drop) -->
+            <div id="dropOverlay" class="hidden absolute inset-0 bg-forest-950/70 backdrop-blur-xs z-30 flex items-center justify-center p-6 pointer-events-none">
+                <div class="border-2 border-dashed border-gold-400 bg-forest-900/95 text-cream-50 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+                    <div class="w-16 h-16 rounded-2xl bg-forest-800 text-gold-400 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="image-plus" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold mb-1">Suelta la foto del hongo aquí</h3>
+                    <p class="text-xs sm:text-sm text-cream-200/80">FungIA analizará sus características morfológicas al instante</p>
+                </div>
+            </div>
+
+            <!-- Área de mensajes -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scroll-smooth">
+                <!-- Mensaje inicial de bienvenida de FungIA -->
+                <div class="flex items-start gap-3 max-w-3xl">
+                    <div class="w-9 h-9 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <i data-lucide="sprout" class="w-5 h-5"></i>
+                    </div>
+                    <div class="bg-white border border-cream-200 rounded-2xl rounded-tl-sm p-4 sm:p-5 shadow-sm text-forest-950 markdown-body">
+                        <p>¡Hola! Soy <strong>FungIA</strong>, tu guía de inteligencia artificial especializado en el fascinante <strong>Reino Fungi</strong>. 🍄🌿</p>
+                        <p>Los hongos no son ni plantas ni animales: forman su propio reino biológico con redes subterráneas increíbles, formas asombrosas y un papel vital para la vida en la Tierra.</p>
+                        <p>Puedes preguntarme sobre su anatomía (como el <em>micelio</em> o las <em>esporas</em>), cómo se alimentan, curiosidades científicas o elegir una de las sugerencias rápidas de abajo. <strong>¿Qué te gustaría descubrir hoy?</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de carga ("FungIA está analizando esporas...") -->
+            <div id="typingIndicator" class="hidden px-4 sm:px-6 pb-2">
+                <div class="inline-flex items-center gap-3 bg-forest-50 border border-forest-100 text-forest-800 px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-xs text-xs sm:text-sm font-medium">
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-terracotta-500 spore-dot"></span>
+                        <span class="w-2 h-2 rounded-full bg-gold-500 spore-dot"></span>
+                        <span class="w-2 h-2 rounded-full bg-forest-700 spore-dot"></span>
+                    </div>
+                    <span>FungIA está analizando esporas...</span>
+                </div>
+            </div>
+
+            <!-- Barra inferior: Sugerencias rápidas + Input -->
+            <div class="bg-cream-100/95 backdrop-blur-sm border-t border-cream-300/80 p-3 sm:p-4 shrink-0">
+                <!-- Chips interactivos de sugerencias rápidas -->
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2.5 mb-1" id="quickChipsContainer">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-forest-700/70 shrink-0 flex items-center gap-1 mr-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-gold-500"></i> Ideas:
+                    </span>
+                    <button type="button" id="photoQuickChip" class="shrink-0 text-xs sm:text-sm bg-terracotta-500 hover:bg-terracotta-600 text-white border border-terracotta-600 px-3.5 py-1.5 rounded-full transition-all shadow-xs font-medium cursor-pointer flex items-center gap-1.5">
+                        <span>📸 Identificar hongo por foto</span>
+                    </button>
+                    <button type="button" class="quick-chip shrink-0 text-xs sm:text-sm bg-white hover:bg-forest-900 hover:text-cream-50 text-forest-900 border border-cream-300 hover:border-forest-900 px-3.5 py-1.5 rounded-full transition-all shadow-2xs font-medium cursor-pointer">
+                        ¿Qué es el micelio?
+                    </button>
+                    <button type="button" class="quick-chip shrink-0 text-xs sm:text-sm bg-white hover:bg-forest-900 hover:text-cream-50 text-forest-900 border border-cream-300 hover:border-forest-900 px-3.5 py-1.5 rounded-full transition-all shadow-2xs font-medium cursor-pointer">
+                        Diferencia entre seta y hongo
+                    </button>
+                    <button type="button" class="quick-chip shrink-0 text-xs sm:text-sm bg-white hover:bg-forest-900 hover:text-cream-50 text-forest-900 border border-cream-300 hover:border-forest-900 px-3.5 py-1.5 rounded-full transition-all shadow-2xs font-medium cursor-pointer">
+                        ¿Cómo se alimentan los hongos?
+                    </button>
+                    <button type="button" class="quick-chip shrink-0 text-xs sm:text-sm bg-white hover:bg-forest-900 hover:text-cream-50 text-forest-900 border border-cream-300 hover:border-forest-900 px-3.5 py-1.5 rounded-full transition-all shadow-2xs font-medium cursor-pointer">
+                        Hongos más curiosos del mundo
+                    </button>
+                    <button type="button" class="quick-chip shrink-0 text-xs sm:text-sm bg-white hover:bg-forest-900 hover:text-cream-50 text-forest-900 border border-cream-300 hover:border-forest-900 px-3.5 py-1.5 rounded-full transition-all shadow-2xs font-medium cursor-pointer">
+                        ¿Qué son las micorrizas?
+                    </button>
+                </div>
+
+                <!-- Vista previa de imagen adjunta antes de enviar -->
+                <div id="imagePreviewWrapper" class="hidden max-w-4xl mx-auto mb-2.5">
+                    <div class="inline-flex items-center gap-3 bg-white border border-cream-300 rounded-2xl p-2 pr-3 shadow-xs">
+                        <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-cream-200 shrink-0 border border-cream-300">
+                            <img id="imagePreviewThumb" src="" alt="Vista previa de hongo" class="w-full h-full object-cover">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p id="imagePreviewName" class="text-xs sm:text-sm font-semibold text-forest-900 truncate max-w-[180px] sm:max-w-xs">foto-hongo.jpg</p>
+                            <p class="text-[11px] text-forest-700">Lista para análisis micológico</p>
+                        </div>
+                        <button type="button" id="removeImageBtn" title="Quitar imagen" class="w-7 h-7 rounded-full bg-cream-200 hover:bg-terracotta-500 text-forest-900 hover:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer" aria-label="Eliminar foto adjunta">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulario de entrada de texto + botón de cámara/imagen -->
+                <form id="chatForm" class="flex items-end gap-2 max-w-4xl mx-auto">
+                    <!-- Input oculto para galería o cámara -->
+                    <input type="file" id="imageInput" accept="image/*" class="hidden">
+
+                    <button
+                        type="button"
+                        id="attachImageBtn"
+                        title="Subir o tomar foto de un hongo"
+                        aria-label="Adjuntar fotografía"
+                        class="bg-white hover:bg-forest-100 text-forest-800 border border-cream-300 hover:border-forest-700 p-3 rounded-2xl transition-all shadow-2xs flex items-center justify-center shrink-0 cursor-pointer"
+                    >
+                        <i data-lucide="camera" class="w-5 h-5 text-terracotta-600"></i>
+                    </button>
+
+                    <div class="flex-1 relative">
+                        <textarea
+                            id="userInput"
+                            rows="1"
+                            placeholder="Pregunta sobre hongos o adjunta una foto para identificarla..."
+                            class="w-full bg-white text-forest-950 placeholder-forest-700/50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 rounded-2xl px-4 py-3 text-sm sm:text-base resize-none outline-none transition-all shadow-inner max-h-32"
+                        ></textarea>
+                    </div>
+                    <button
+                        type="submit"
+                        id="sendBtn"
+                        aria-label="Enviar mensaje"
+                        class="bg-forest-900 hover:bg-forest-800 disabled:opacity-50 disabled:cursor-not-allowed text-cream-50 p-3 sm:px-5 sm:py-3 rounded-2xl font-medium transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                    >
+                        <span class="hidden sm:inline text-sm">Enviar</span>
+                        <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5 text-gold-400"></i>
+                    </button>
+                </form>
+                <p class="text-[11px] text-center text-forest-800/60 mt-2">
+                    FungIA brinda información educativa. Nunca consumas hongos silvestres sin la validación presencial de un micólogo experto.
+                </p>
+            </div>
+        </section>
+
+        <!-- BACKDROP MÓVIL PARA LA GUÍA -->
+        <div id="guideBackdrop" class="fixed inset-0 bg-forest-950/50 backdrop-blur-xs z-30 hidden lg:hidden transition-opacity"></div>
+
+        <!-- PANEL LATERAL / DESPLEGABLE: GUÍA RÁPIDA DEL REINO FUNGI -->
+        <aside id="guideSidebar" class="fixed lg:static inset-y-0 right-0 w-80 sm:w-96 bg-cream-100 border-l border-cream-300 z-40 transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-full shadow-2xl lg:shadow-none">
+            <!-- Cabecera del panel lateral -->
+            <div class="p-4 sm:p-5 bg-cream-200/60 border-b border-cream-300 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-terracotta-100 text-terracotta-600 flex items-center justify-center">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-serif font-bold text-base sm:text-lg text-forest-900 leading-tight">Guía Rápida Fungi</h2>
+                        <p class="text-xs text-forest-700">Conceptos esenciales de micología</p>
+                    </div>
+                </div>
+                <button id="closeGuideBtn" class="lg:hidden p-2 rounded-xl hover:bg-cream-300/60 text-forest-900 transition-colors" aria-label="Cerrar guía">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Contenido desplazable de tarjetas -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                <p class="text-xs text-forest-800/80 bg-white/80 p-3 rounded-xl border border-cream-300/80">
+                    💡 <strong>Tip interactivo:</strong> Haz clic en cualquier tarjeta para pedirle a FungIA que profundice en ese tema.
+                </p>
+
+                <!-- Tarjeta 1: Estructura del hongo -->
+                <div class="guide-card group bg-white hover:border-forest-700 border border-cream-300 rounded-2xl p-4 shadow-2xs transition-all cursor-pointer" data-prompt="Explícame detalladamente la estructura de un hongo: qué son las hifas, el micelio, el cuerpo fructífero (seta) y las esporas.">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-forest-800 bg-forest-100 px-2.5 py-1 rounded-lg">
+                            <i data-lucide="network" class="w-3.5 h-3.5 text-forest-700"></i> Anatomía
+                        </span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-forest-700 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"></i>
+                    </div>
+                    <h3 class="font-serif font-bold text-forest-950 text-base mb-1.5">Estructura del Hongo</h3>
+                    <ul class="text-xs text-forest-800 space-y-1.5 leading-relaxed">
+                        <li>• <strong>Hifas:</strong> Filamentos microscópicos que crecen y absorben nutrientes.</li>
+                        <li>• <strong>Micelio:</strong> La red subterránea formada por miles de hifas (el "verdadero" cuerpo del hongo).</li>
+                        <li>• <strong>Cuerpo fructífero:</strong> La seta visible que produce y libera <strong>esporas</strong> para reproducirse.</li>
+                    </ul>
+                </div>
+
+                <!-- Tarjeta 2: Rol Ecológico -->
+                <div class="guide-card group bg-white hover:border-terracotta-500 border border-cream-300 rounded-2xl p-4 shadow-2xs transition-all cursor-pointer" data-prompt="¿Cuál es el rol ecológico de los hongos en los ecosistemas y por qué son indispensables para los bosques y el planeta?">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-100 px-2.5 py-1 rounded-lg">
+                            <i data-lucide="recycle" class="w-3.5 h-3.5"></i> Ecosistema
+                        </span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-terracotta-600 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"></i>
+                    </div>
+                    <h3 class="font-serif font-bold text-forest-950 text-base mb-1.5">Rol Ecológico Vital</h3>
+                    <p class="text-xs text-forest-800 leading-relaxed">
+                        Son los grandes <strong>recicladores de la naturaleza</strong>. Descomponen madera y materia orgánica muerta, devolviendo nutrientes esenciales al suelo y formando la <em>"Wood Wide Web"</em> que conecta los árboles del bosque.
+                    </p>
+                </div>
+
+                <!-- Tarjeta 3: Tipos Principales -->
+                <div class="guide-card group bg-white hover:border-gold-500 border border-cream-300 rounded-2xl p-4 shadow-2xs transition-all cursor-pointer" data-prompt="Explícame con ejemplos los 3 tipos principales de hongos según su forma de alimentarse: saprofitos, micorrízicos y parásitos.">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-800 bg-gold-100 px-2.5 py-1 rounded-lg">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-gold-500"></i> Clasificación
+                        </span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-amber-800 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"></i>
+                    </div>
+                    <h3 class="font-serif font-bold text-forest-950 text-base mb-1.5">Tipos Principales</h3>
+                    <div class="space-y-2 text-xs text-forest-800">
+                        <div class="bg-cream-50 p-2 rounded-lg border border-cream-200">
+                            <strong class="text-forest-900">🍂 Saprofitos:</strong> Se alimentan de materia orgánica muerta (ej. champiñón, shiitake).
+                        </div>
+                        <div class="bg-cream-50 p-2 rounded-lg border border-cream-200">
+                            <strong class="text-forest-900">🤝 Micorrízicos:</strong> Hacen simbiosis con raíces de plantas intercambiando agua y azúcares (ej. trufas, boletus).
+                        </div>
+                        <div class="bg-cream-50 p-2 rounded-lg border border-cream-200">
+                            <strong class="text-forest-900">🦠 Parásitos:</strong> Obtienen nutrientes de otros seres vivos (ej. <em>Cordyceps</em>).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 4: Datos Fascinantes -->
+                <div class="guide-card group bg-forest-900 text-cream-50 hover:bg-forest-800 border border-forest-700 rounded-2xl p-4 shadow-sm transition-all cursor-pointer" data-prompt="Cuéntame 5 datos fascinantes y sorprendentes sobre los hongos que la mayoría de las personas no conocen.">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gold-400 bg-forest-800 px-2.5 py-1 rounded-lg border border-gold-400/20">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ¿Sabías que...?
+                        </span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gold-400 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"></i>
+                    </div>
+                    <h3 class="font-serif font-bold text-cream-50 text-base mb-1.5">Datos Fascinantes</h3>
+                    <ul class="text-xs text-cream-100/90 space-y-1.5 leading-relaxed">
+                        <li>🧬 Genéticamente, los hongos están <strong>más cerca de los animales</strong> que de las plantas.</li>
+                        <li>🌎 El ser vivo más grande del planeta es un hongo (<em>Armillaria ostoyae</em>) en Oregón, que abarca casi 10 km².</li>
+                        <li>✨ Existen más de 100 especies de hongos <strong>bioluminiscentes</strong> que brillan en la oscuridad.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <!-- MODAL LIGHTBOX PARA AMPLIAR IMÁGENES DEL CHAT -->
+    <div id="imageLightbox" class="hidden fixed inset-0 bg-forest-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+        <button id="closeLightboxBtn" aria-label="Cerrar vista ampliada" class="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-forest-900/90 hover:bg-terracotta-500 text-cream-50 border border-cream-200/20 flex items-center justify-center transition-colors shadow-lg cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <img id="lightboxImg" src="" alt="Imagen ampliada del hongo" class="max-w-full max-h-[88vh] rounded-2xl shadow-2xl border border-cream-200/20 object-contain">
+    </div>
+
+    <!-- SCRIPT DE LÓGICA DE APLICACIÓN E INTEGRACIÓN CON GEMINI API -->
+    <script>
+        // Inicializar iconos Lucide
+        lucide.createIcons();
+
+        // Configuración de Gemini API (soporte multimodal texto + imagen)
+        const apiKey = ""; // En tiempo de ejecución se inyecta automáticamente
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        // Instrucción del sistema para definir la personalidad, análisis visual y reglas de FungIA
+        const systemInstructionText = `Eres FungIA, un asistente experto en micología y en el Reino Fungi, amigable, apasionado por la naturaleza y muy didáctico.
+Tus reglas de respuesta son:
+1. Responde siempre en español claro, accesible, estructurado y entusiasta.
+2. Usa formato Markdown limpio: utiliza **negritas** para conceptos clave (como micelio, hifas, esporas, quitina, simbiosis, píleo, estípite, láminas, volva, anillo) y listas con viñetas para explicar procesos o clasificaciones.
+3. ANÁLISIS VISUAL DE FOTOGRAFÍAS: Cuando el usuario adjunte una fotografía:
+   - Describe detalladamente los rasgos morfológicos observables: forma, color y textura del **sombrero (píleo)**; estructura fértil inferior (**láminas, poros, pliegues o aguijones**); características del **pie (estípite)**; presencia o ausencia de **anillo** o **volva**; y el **hábitat o sustrato** aparente (madera en descomposición, suelo, musgo, bosque, etc.).
+   - Sugiere los posibles géneros o especies más probables indicando explícitamente tu **nivel de confianza** (por ejemplo: *Alta*, *Media* o *Baja*, explicando qué rasgos clave faltan por ver, como la esporada o la base del pie).
+   - Comparte datos ecológicos o curiosidades interesantes sobre ese grupo de hongos.
+4. REGLA DE SEGURIDAD CRÍTICA: Ante cualquier fotografía enviada, o si el usuario pregunta si un hongo silvestre es comestible, tóxico o alucinógeno, DEBES incluir siempre una advertencia clara y destacada (usando una cita > ⚠️ **Advertencia de seguridad:** ...) indicando que la identificación fotográfica mediante inteligencia artificial es únicamente orientativa y educativa, nunca sustituye la evaluación presencial de un micólogo experto y jamás debe usarse para decidir si un hongo silvestre es comestible.`;
+
+        // Historial de conversación para mantener contexto multi-turno
+        let conversationHistory = [];
+        let isGenerating = false;
+        let pendingImage = null; // { base64: string, mimeType: string, dataUrl: string, name: string }
+
+        // Referencias al DOM
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+
+        // Referencias de manejo de imágenes y lightbox
+        const imageInput = document.getElementById('imageInput');
+        const attachImageBtn = document.getElementById('attachImageBtn');
+        const photoQuickChip = document.getElementById('photoQuickChip');
+        const imagePreviewWrapper = document.getElementById('imagePreviewWrapper');
+        const imagePreviewThumb = document.getElementById('imagePreviewThumb');
+        const imagePreviewName = document.getElementById('imagePreviewName');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const chatDropZone = document.getElementById('chatDropZone');
+        const dropOverlay = document.getElementById('dropOverlay');
+        const imageLightbox = document.getElementById('imageLightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+
+        // Referencias del panel lateral (Guía Rápida)
+        const guideSidebar = document.getElementById('guideSidebar');
+        const guideBackdrop = document.getElementById('guideBackdrop');
+        const toggleGuideBtn = document.getElementById('toggleGuideBtn');
+        const closeGuideBtn = document.getElementById('closeGuideBtn');
+
+        // --- FUNCIONES DE INTERFAZ Y NAVEGACIÓN ---
+
+        function openGuide() {
+            guideSidebar.classList.remove('translate-x-full');
+            guideBackdrop.classList.remove('hidden');
+        }
+
+        function closeGuide() {
+            guideSidebar.classList.add('translate-x-full');
+            guideBackdrop.classList.add('hidden');
+        }
+
+        toggleGuideBtn.addEventListener('click', openGuide);
+        closeGuideBtn.addEventListener('click', closeGuide);
+        guideBackdrop.addEventListener('click', closeGuide);
+
+        // --- FUNCIONES DE GESTIÓN DE IMÁGENES (SELECCIÓN, PEGADO, DRAG & DROP, LIGHTBOX) ---
+
+        function processImageFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Optimizar resolución máxima (1280px) para subida rápida y nítida
+                    const maxDim = 1280;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const outputMime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                    const dataUrl = canvas.toDataURL(outputMime, 0.88);
+                    const base64 = dataUrl.split(',')[1];
+
+                    pendingImage = {
+                        base64,
+                        mimeType: outputMime,
+                        dataUrl,
+                        name: file.name || 'captura-hongo.jpg'
+                    };
+
+                    imagePreviewThumb.src = dataUrl;
+                    imagePreviewName.textContent = pendingImage.name;
+                    imagePreviewWrapper.classList.remove('hidden');
+                    userInput.focus();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearPendingImage() {
+            pendingImage = null;
+            imageInput.value = '';
+            imagePreviewThumb.src = '';
+            imagePreviewWrapper.classList.add('hidden');
+        }
+
+        attachImageBtn.addEventListener('click', () => {
+            if (!isGenerating) imageInput.click();
+        });
+
+        photoQuickChip.addEventListener('click', () => {
+            if (!isGenerating) imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processImageFile(e.target.files[0]);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', clearPendingImage);
+
+        // Pegar imagen desde el portapapeles (Ctrl+V / móvil)
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        processImageFile(file);
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Arrastrar y soltar (Drag & Drop) sobre el área del chat
+        let dragCounter = 0;
+        chatDropZone.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer?.types?.includes('Files')) {
+                dragCounter++;
+                dropOverlay.classList.remove('hidden');
+            }
+        });
+
+        chatDropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter <= 0) {
+                dragCounter = 0;
+                dropOverlay.classList.add('hidden');
+            }
+        });
+
+        chatDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        chatDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dropOverlay.classList.add('hidden');
+            const files = e.dataTransfer?.files;
+            if (files && files[0] && files[0].type.startsWith('image/')) {
+                processImageFile(files[0]);
+            }
+        });
+
+        // Lightbox para ver imágenes enviadas en tamaño completo
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            imageLightbox.classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            imageLightbox.classList.add('hidden');
+            lightboxImg.src = '';
+        }
+
+        closeLightboxBtn.addEventListener('click', closeLightbox);
+        imageLightbox.addEventListener('click', (e) => {
+            if (e.target === imageLightbox) closeLightbox();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !imageLightbox.classList.contains('hidden')) {
+                closeLightbox();
+            }
+        });
+
+        // Auto-ajustar altura del textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+        });
+
+        // Enviar con Enter (sin Shift)
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!isGenerating && (this.value.trim() || pendingImage)) {
+                    chatForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // Función para desplazarse al final del chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Renderizar mensaje en el chat (soporta texto e imagen opcional)
+        function appendMessage(role, text, imageDataUrl = null) {
+            const wrapper = document.createElement('div');
+            wrapper.className = role === 'user'
+                ? 'flex items-start justify-end gap-3 max-w-3xl ml-auto'
+                : 'flex items-start gap-3 max-w-3xl';
+
+            if (role === 'user') {
+                const imageBlock = imageDataUrl ? `
+                    <div class="mb-2.5 overflow-hidden rounded-xl border border-cream-50/20 bg-forest-950/40">
+                        <img src="${imageDataUrl}" alt="Fotografía enviada por el usuario" class="chat-user-img max-h-64 w-auto object-contain rounded-xl cursor-zoom-in hover:opacity-95 transition-opacity" title="Haz clic para ampliar">
+                    </div>
+                ` : '';
+
+                wrapper.innerHTML = `
+                    <div class="bg-forest-900 text-cream-50 rounded-2xl rounded-tr-sm px-4 py-3 sm:px-5 sm:py-3.5 shadow-sm text-sm sm:text-base leading-relaxed">
+                        ${imageBlock}
+                        <div>${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+                    </div>
+                    <div class="w-9 h-9 rounded-2xl bg-terracotta-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </div>
+                `;
+
+                const imgEl = wrapper.querySelector('.chat-user-img');
+                if (imgEl) {
+                    imgEl.addEventListener('click', () => openLightbox(imageDataUrl));
+                }
+            } else {
+                // Parsear Markdown de forma segura
+                const formattedHtml = marked.parse(text);
+                wrapper.innerHTML = `
+                    <div class="w-9 h-9 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <i data-lucide="sprout" class="w-5 h-5"></i>
+                    </div>
+                    <div class="bg-white border border-cream-200 rounded-2xl rounded-tl-sm p-4 sm:p-5 shadow-sm text-forest-950 text-sm sm:text-base markdown-body overflow-x-auto">
+                        ${formattedHtml}
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(wrapper);
+            lucide.createIcons({ root: wrapper });
+            scrollToBottom();
+        }
+
+        // Escapar HTML básico para entradas del usuario
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // --- COMUNICACIÓN CON GEMINI API (CON REINTENTOS EXPONENCIALES) ---
+
+        async function fetchGeminiWithRetry(payload, maxRetries = 4) {
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429 || response.status >= 500) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.error?.message || `Error ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    if (attempt === maxRetries) {
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function handleSendMessage(promptText) {
+            const attachedImg = pendingImage ? { ...pendingImage } : null;
+            const cleanText = promptText.trim() || (attachedImg ? "Identifica este hongo y dame información sobre sus características." : "");
+
+            if ((!cleanText && !attachedImg) || isGenerating) return;
+
+            isGenerating = true;
+            sendBtn.disabled = true;
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            clearPendingImage();
+
+            // Mostrar mensaje del usuario (con imagen si existe)
+            appendMessage('user', cleanText, attachedImg ? attachedImg.dataUrl : null);
+
+            // Construir partes multimodales para Gemini API
+            const userParts = [{ text: cleanText }];
+            if (attachedImg) {
+                userParts.push({
+                    inlineData: {
+                        mimeType: attachedImg.mimeType,
+                        data: attachedImg.base64
+                    }
+                });
+            }
+
+            // Agregar al historial
+            conversationHistory.push({
+                role: 'user',
+                parts: userParts
+            });
+
+            // Mostrar indicador de esporas
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+
+            try {
+                const payload = {
+                    contents: conversationHistory,
+                    systemInstruction: {
+                        parts: [{ text: systemInstructionText }]
+                    },
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 1400
+                    }
+                };
+
+                const result = await fetchGeminiWithRetry(payload);
+                const candidate = result.candidates?.[0];
+                const replyText = candidate?.content?.parts?.[0]?.text;
+
+                if (replyText) {
+                    conversationHistory.push({
+                        role: 'model',
+                        parts: [{ text: replyText }]
+                    });
+                    appendMessage('model', replyText);
+                } else {
+                    throw new Error('No se recibió respuesta válida del modelo.');
+                }
+            } catch (error) {
+                // Eliminar último turno de usuario fallido para no corromper el historial
+                conversationHistory.pop();
+                appendMessage(
+                    'model',
+                    `Lo siento, ocurrió una pequeña interferencia en la red de micelio al analizar tu consulta. Por favor, intenta enviar tu pregunta o imagen de nuevo en unos segundos.`
+                );
+            } finally {
+                typingIndicator.classList.add('hidden');
+                isGenerating = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        // --- EVENTOS DE INTERACCIÓN ---
+
+        // Envío del formulario
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleSendMessage(userInput.value);
+        });
+
+        // Chips de sugerencias rápidas
+        document.querySelectorAll('.quick-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (!isGenerating) {
+                    handleSendMessage(chip.textContent.trim());
+                }
+            });
+        });
+
+        // Tarjetas de la Guía Rápida
+        document.querySelectorAll('.guide-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const prompt = card.getAttribute('data-prompt');
+                if (prompt && !isGenerating) {
+                    closeGuide(); // Cierra el cajón si está en vista móvil/tablet
+                    handleSendMessage(prompt);
+                }
+            });
+        });
+
+        // Reiniciar chat
+        clearChatBtn.addEventListener('click', () => {
+            if (isGenerating) return;
+            conversationHistory = [];
+            clearPendingImage();
+            chatMessages.innerHTML = `
+                <div class="flex items-start gap-3 max-w-3xl">
+                    <div class="w-9 h-9 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <i data-lucide="sprout" class="w-5 h-5"></i>
+                    </div>
+                    <div class="bg-white border border-cream-200 rounded-2xl rounded-tl-sm p-4 sm:p-5 shadow-sm text-forest-950 markdown-body">
+                        <p>¡Conversación reiniciada! 🌱 Estoy listo para seguir explorando el <strong>Reino Fungi</strong> contigo.</p>
+                        <p>Puedes hacerme cualquier pregunta o adjuntar una fotografía para analizar sus rasgos micológicos.</p>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons({ root: chatMessages });
+        });
+    </script>
+</body>
+</html>
+```
